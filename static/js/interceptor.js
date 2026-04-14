@@ -11,8 +11,8 @@
   ];
 
   window.cliente = {
-    email: "{{ session.get('email') }}",
-    whatsapp: "{{ config.whatsapp }}",
+    email: "jeniferfigueroa745@gmail.com",
+    whatsapp: "https://wa.me/5492901521672",
     mercado_pago: "{{ config.mercado_pago }}"
   };
   window.VENDOR_EMAIL = window.cliente.email;
