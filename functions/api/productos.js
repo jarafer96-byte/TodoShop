@@ -3,10 +3,25 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const method = request.method;
 
+  // Solo procesar GET /api/productos
   if (method !== 'GET' || url.pathname !== '/api/productos') {
     return context.next();
   }
 
+  // ⭐ PURGA DE CACHÉ DEL WORKER
+  if (request.headers.get('X-Purge-Cache') === 'true') {
+    const vendorEmail = request.headers.get('X-Vendor-Email') || 'default';
+    const cacheUrl = new URL(url);
+    cacheUrl.searchParams.delete('_');
+    cacheUrl.searchParams.set('vendor', vendorEmail);
+    const cacheKey = new Request(cacheUrl.toString());
+    const cache = caches.default;
+    await cache.delete(cacheKey);
+    console.log(`🧹 Cache purged for ${vendorEmail}`);
+    return new Response('Cache purged', { status: 200 });
+  }
+
+  // Si la petición tiene Authorization, es un admin -> ir directo a Render (sin caché)
   if (request.headers.has('Authorization')) {
     const backendUrl = env.API_BACKEND_URL || 'https://mpagina.onrender.com';
     return fetch(`${backendUrl}${url.pathname}${url.search}`, request);
@@ -18,12 +33,12 @@ export async function onRequest(context) {
     return fetch(`${backendUrl}${url.pathname}${url.search}`, request);
   }
 
-  // Construir URL de caché limpia
+  // Construir URL de caché limpia (sin parámetros aleatorios, con vendor fijo)
   const cacheUrl = new URL(url);
   cacheUrl.searchParams.delete('_');
   cacheUrl.searchParams.set('vendor', vendorEmail);
 
-  // ✅ Crear Request solo con la URL, sin headers
+  // Crear Request solo con la URL, sin headers (para clave de caché)
   const cacheKey = new Request(cacheUrl.toString());
   const cache = caches.default;
 
