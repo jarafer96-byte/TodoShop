@@ -1068,10 +1068,11 @@ async function recargarProductos() {
   try {
     const email = window.cliente?.email;
     if (!email) return;
-    const resp = await fetch(`/api/productos`);
+    const resp = await fetch(`/api/productos?_=${Date.now()}`);
     const data = await resp.json();
     window.todosLosProductos = Array.isArray(data) ? data : [];
   } catch (err) {
+    console.error(err);
   }
 }
 
