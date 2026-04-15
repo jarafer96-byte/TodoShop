@@ -879,8 +879,18 @@ function mostrarSubgruposHorizontal(grupo) {
   barraSub.innerHTML = html;
   barraSub.classList.add('admin-subgrupos-bar-visible');
   barraSub.dataset.currentGroup = grupo;
-}
 
+  // ⭐ NUEVO: Si después de renderizar no hay ningún subgrupo activo, seleccionar automáticamente el primero.
+  setTimeout(() => {
+    const activo = barraSub.querySelector('.subgrupo-btn.active');
+    if (!activo) {
+      const primerSub = barraSub.querySelector('.subgrupo-btn');
+      if (primerSub) {
+        primerSub.click();
+      }
+    }
+  }, 30);
+}
 
 function ocultarSubgrupos() {
   const barraSub = document.getElementById('adminSubgruposBar');
