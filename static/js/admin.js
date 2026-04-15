@@ -1288,6 +1288,13 @@ if (window.modoAdmin) {
       const primerGrupo = document.querySelector('.grupo-btn');
       if (primerGrupo) {
         primerGrupo.click();
+        // Esperar a que se renderice la barra de subgrupos
+        setTimeout(() => {
+          const primerSubgrupo = document.querySelector('#adminSubgruposBar .subgrupo-btn');
+          if (primerSubgrupo) {
+            primerSubgrupo.click();
+          }
+        }, 100);
       }
     }, 50);
   });
