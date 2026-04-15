@@ -951,6 +951,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     tbody.innerHTML = renderFilasTabla(filtrados);
   }
 
+  // Actualizar clases activas en botones de grupo
   const grupoBtns = document.querySelectorAll('.grupo-btn');
   grupoBtns.forEach(btn => {
     if (btn.dataset.grupo === grupo) {
@@ -960,6 +961,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     }
   });
 
+  // Mostrar u ocultar barra de subgrupos
   if (grupo && grupo !== 'todos') {
     const subgrupos = [...new Set(
       window.todosLosProductos.filter(p => p.grupo === grupo)
@@ -975,6 +977,7 @@ function filtrarProductos(grupo, subgrupo = null) {
     ocultarSubgrupos();
   }
 
+  // Actualizar clases activas en botones de subgrupo
   const subgrupoBtns = document.querySelectorAll('.subgrupo-btn');
   subgrupoBtns.forEach(btn => {
     if (btn.dataset.grupo === grupo && btn.dataset.subgrupo === subgrupo) {
@@ -985,8 +988,21 @@ function filtrarProductos(grupo, subgrupo = null) {
   });
 
   window.currentAdminSubgrupo = subgrupo;
-}
 
+  // ⭐ NUEVO: Si no se especificó un subgrupo (ej. al cambiar de grupo),
+  // seleccionar automáticamente el primer subgrupo disponible después de que se renderice.
+  if (!subgrupo) {
+    setTimeout(() => {
+      const subgrupoActivo = document.querySelector('.subgrupo-btn.active');
+      if (!subgrupoActivo) {
+        const primerSub = document.querySelector('#adminSubgruposBar .subgrupo-btn');
+        if (primerSub) {
+          primerSub.click();
+        }
+      }
+    }, 50);
+  }
+}
 
 function obtenerProductoDesdeFila(fila, idBase) {
   const original = window.todosLosProductos.find(p => p.id_base === idBase) || {};
