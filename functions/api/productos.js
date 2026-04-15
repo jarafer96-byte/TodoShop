@@ -42,11 +42,15 @@ export async function onRequest(context) {
   const cacheKey = new Request(cacheUrl.toString());
   const cache = caches.default;
 
-  // 1. Intentar obtener de caché
+  // 1. Intentar obtener de caché del Worker
   let cachedResponse = await cache.match(cacheKey);
   if (cachedResponse) {
     console.log(`🎯 CACHE HIT for ${vendorEmail}`);
     const response = new Response(cachedResponse.body, cachedResponse);
+    // Forzar al navegador a no cachear la respuesta
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
     response.headers.set('X-Cache-Worker', 'HIT');
     return response;
   }
@@ -61,7 +65,7 @@ export async function onRequest(context) {
     return backendResponse;
   }
 
-  // 3. Limpiar headers problemáticos
+  // 3. Limpiar headers problemáticos (set-cookie) y ajustar Vary
   const cleanHeaders = new Headers(backendResponse.headers);
   cleanHeaders.delete('set-cookie');
   cleanHeaders.set('vary', 'Accept-Encoding');
@@ -72,12 +76,19 @@ export async function onRequest(context) {
     headers: cleanHeaders
   });
 
-  responseToCache.headers.set('Cache-Control', 'public, max-age=300');
+  // Headers para la caché del Worker (interna)
+  responseToCache.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300');
   responseToCache.headers.set('Cache-Tag', `vendor-${vendorEmail}`);
   responseToCache.headers.set('X-Cache-Worker', 'MISS');
 
-  // 4. Guardar en caché
+  // 4. Guardar en caché del Worker
   context.waitUntil(cache.put(cacheKey, responseToCache.clone()));
 
-  return responseToCache;
+  // 5. Clonar la respuesta para el navegador y agregar headers de no-caché
+  const clientResponse = new Response(responseToCache.body, responseToCache);
+  clientResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  clientResponse.headers.set('Pragma', 'no-cache');
+  clientResponse.headers.set('Expires', '0');
+
+  return clientResponse;
 }
