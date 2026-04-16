@@ -71,8 +71,6 @@
   padding: 1rem;
   list-style: none;
 }
-
-/* Cada ítem del carrito */
 .carrito-item {
   display: flex;
   justify-content: space-between;
